@@ -163,11 +163,6 @@ public class IconProvider {
         }
 
         ThemeData td = getThemedIconMap().get(packageName);
-
-        if (td == null && mThemedIconMap != DISABLED_MAP) {
-            td = new ThemeData(mContext.getResources(), icon);
-        }
-
         return td != null ? td.wrapDrawable(icon, iconType) : icon;
     }
 
