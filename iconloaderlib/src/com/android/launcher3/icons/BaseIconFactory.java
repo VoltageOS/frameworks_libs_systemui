@@ -66,8 +66,8 @@ public class BaseIconFactory implements AutoCloseable {
     // Shadow bitmap used as background for theme icons
     private Bitmap mWhiteShadowLayer;
 
-    private Drawable mWrapperIcon;
-    private int mWrapperBackgroundColor = DEFAULT_WRAPPER_BACKGROUND;
+    protected Drawable mWrapperIcon;
+    protected int mWrapperBackgroundColor = DEFAULT_WRAPPER_BACKGROUND;
 
     private final Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private static final float PLACEHOLDER_TEXT_SIZE = 20f;
@@ -280,7 +280,7 @@ public class BaseIconFactory implements AutoCloseable {
         mDisableColorExtractor = true;
     }
 
-    private Drawable normalizeAndWrapToAdaptiveIcon(@NonNull Drawable icon,
+    protected Drawable normalizeAndWrapToAdaptiveIcon(@NonNull Drawable icon,
             boolean shrinkNonAdaptiveIcons, RectF outIconBounds, float[] outScale) {
         if (icon == null) {
             return null;
