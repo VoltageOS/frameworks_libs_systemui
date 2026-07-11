@@ -81,21 +81,30 @@ public class ColorScheme {
     public ColorScheme(@ColorInt int seed, boolean isDark, @ThemeStyle.Type int style,
             double contrastLevel, float luminanceFactor, float chromaFactor,
             boolean tintBackground, Integer bgSeed) {
+        this(seed, isDark, style, contrastLevel, luminanceFactor, chromaFactor, false,
+                tintBackground, bgSeed);
+    }
+
+    public ColorScheme(@ColorInt int seed, boolean isDark, @ThemeStyle.Type int style,
+            double contrastLevel, float luminanceFactor, float chromaFactor, boolean wholePalette,
+            boolean tintBackground, Integer bgSeed) {
         this(List.of(seed), isDark, style, contrastLevel, SpecVersion.SPEC_2026,
-                DynamicScheme.DEFAULT_PLATFORM, luminanceFactor, chromaFactor, tintBackground,
-                bgSeed);
+                DynamicScheme.DEFAULT_PLATFORM, luminanceFactor, chromaFactor, wholePalette,
+                tintBackground, bgSeed);
     }
 
     public ColorScheme(@NonNull @Size(min = 1) List<Integer> seeds, boolean isDark,
             @ThemeStyle.Type int style,
             double contrastLevel, SpecVersion specVersion, Platform platform) {
-        this(seeds, isDark, style, contrastLevel, specVersion, platform, 1f, 1f, false, null);
+        this(seeds, isDark, style, contrastLevel, specVersion, platform, 1f, 1f, false, false,
+                null);
     }
 
     public ColorScheme(@NonNull @Size(min = 1) List<Integer> seeds, boolean isDark,
             @ThemeStyle.Type int style,
             double contrastLevel, SpecVersion specVersion, Platform platform,
-            float luminanceFactor, float chromaFactor, boolean tintBackground, Integer bgSeed) {
+            float luminanceFactor, float chromaFactor, boolean wholePalette,
+            boolean tintBackground, Integer bgSeed) {
 
         this.mSeeds = seeds;
         this.mIsDark = isDark;
@@ -185,13 +194,16 @@ public class ColorScheme {
         }
 
         mAccent1 = new TonalPalette(mMaterialScheme.primaryPalette, luminanceFactor, chromaFactor);
-        mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette);
-        mAccent3 = new TonalPalette(mMaterialScheme.tertiaryPalette);
+        mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette,
+                wholePalette ? luminanceFactor : 1f,
+                wholePalette ? chromaFactor : 1f);
+        mAccent3 = new TonalPalette(mMaterialScheme.tertiaryPalette, luminanceFactor, chromaFactor);
         mNeutral1 = new TonalPalette(bgScheme.neutralPalette,
                 tintBackground ? luminanceFactor : 1f,
                 tintBackground ? chromaFactor : 1f);
-        mNeutral2 = new TonalPalette(mMaterialScheme.neutralVariantPalette);
-        mError = new TonalPalette(mMaterialScheme.errorPalette);
+        mNeutral2 = new TonalPalette(bgScheme.neutralVariantPalette,
+                tintBackground && wholePalette ? luminanceFactor : 1f,
+                tintBackground && wholePalette ? chromaFactor : 1f);
     }
 
     public ColorScheme(@ColorInt int seed, boolean isDark, @ThemeStyle.Type int style,
