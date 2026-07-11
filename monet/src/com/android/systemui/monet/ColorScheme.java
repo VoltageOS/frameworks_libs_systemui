@@ -63,6 +63,7 @@ public class ColorScheme {
     @ThemeStyle.Type
     private final int mStyle;
     private final DynamicScheme mMaterialScheme;
+    private final DynamicScheme mBgScheme;
     private final TonalPalette mAccent1;
     private final TonalPalette mAccent2;
     private final TonalPalette mAccent3;
@@ -192,6 +193,7 @@ public class ColorScheme {
                 default -> throw new IllegalArgumentException("Unknown style: " + style);
             };
         }
+        mBgScheme = bgScheme;
 
         mAccent1 = new TonalPalette(mMaterialScheme.primaryPalette, luminanceFactor, chromaFactor);
         mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette,
@@ -204,6 +206,7 @@ public class ColorScheme {
         mNeutral2 = new TonalPalette(bgScheme.neutralVariantPalette,
                 tintBackground && wholePalette ? luminanceFactor : 1f,
                 tintBackground && wholePalette ? chromaFactor : 1f);
+        mError = new TonalPalette(mMaterialScheme.errorPalette, luminanceFactor, chromaFactor);
     }
 
     public ColorScheme(@ColorInt int seed, boolean isDark, @ThemeStyle.Type int style,
@@ -261,6 +264,10 @@ public class ColorScheme {
 
     public DynamicScheme getMaterialScheme() {
         return mMaterialScheme;
+    }
+
+    public DynamicScheme getBgMaterialScheme() {
+        return mBgScheme;
     }
 
     public TonalPalette getAccent1() {
