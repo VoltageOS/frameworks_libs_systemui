@@ -177,7 +177,9 @@ constructor(
                 )
         }
 
-        val noWrapHintSet = (tempIcon.changingConfigurations and CONFIG_HINT_NO_WRAP) != 0
+        val noWrapHintSet =
+            (icon.changingConfigurations and CONFIG_HINT_NO_WRAP) != 0 ||
+                (tempIcon.changingConfigurations and CONFIG_HINT_NO_WRAP) != 0
         if (options.wrapNonAdaptiveIcon && !noWrapHintSet) {
             tempIcon = wrapToAdaptiveIcon(tempIcon, options)
         }
@@ -205,7 +207,7 @@ constructor(
             info = icon.getUpdatedBitmapInfo(info, this)
         }
 
-        if (IconProvider.ATLEAST_T && themeController != null) {
+        if (IconProvider.ATLEAST_T && themeController != null && !noWrapHintSet) {
             info =
                 info.copy(
                     themedBitmap =
