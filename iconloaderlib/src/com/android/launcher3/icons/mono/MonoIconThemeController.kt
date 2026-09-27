@@ -39,6 +39,7 @@ import com.android.launcher3.BadgeProvider
 import com.android.launcher3.Flags
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.icons.ClockDrawableWrapper
 import com.android.launcher3.icons.ClockDrawableWrapper.ClockAnimationInfo
 import com.android.launcher3.icons.IconThemeController
 import com.android.launcher3.icons.MonochromeIconFactory
@@ -65,9 +66,11 @@ class MonoIconThemeController(
         val currentDelegateFactory = info.delegateFactory
         if (currentDelegateFactory is ClockAnimationInfo) {
             val fullDrawable = currentDelegateFactory.baseDrawableState.newDrawable()
-            val monoDrawable = (fullDrawable as? AdaptiveIconDrawable)?.monochrome?.mutate()
+            val fullAdaptive = fullDrawable as? AdaptiveIconDrawable
+            val monoDrawable = fullAdaptive?.monochrome?.mutate()
 
             if (monoDrawable is LayerDrawable) {
+                graftMissingSecondHand(fullAdaptive, monoDrawable, currentDelegateFactory)
                 return ClockThemedBitmap(
                     currentDelegateFactory.copy(
                         baseDrawableState = AdaptiveIconDrawable(null, monoDrawable).constantState!!
@@ -98,6 +101,50 @@ class MonoIconThemeController(
         }
 
         return ThemedBitmap.NOT_SUPPORTED
+    }
+
+    private fun graftMissingSecondHand(
+        fullAdaptive: AdaptiveIconDrawable?,
+        monoDrawable: LayerDrawable,
+        animInfo: ClockAnimationInfo,
+    ) {
+        try {
+            val sec = animInfo.secondLayerIndex
+            if (sec == ClockDrawableWrapper.INVALID_VALUE) return
+            val fg = fullAdaptive?.foreground as? LayerDrawable ?: return
+            if (sec >= fg.numberOfLayers) return
+            if (sec < monoDrawable.numberOfLayers &&
+                isLayerVisible(monoDrawable.getDrawable(sec))
+            ) {
+                return
+            }
+            val donor = fg.getDrawable(sec)?.constantState?.newDrawable() ?: return
+            if (sec < monoDrawable.numberOfLayers) {
+                monoDrawable.setDrawable(sec, donor)
+            } else if (sec == monoDrawable.numberOfLayers) {
+                monoDrawable.addLayer(donor)
+            }
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun isLayerVisible(d: Drawable?): Boolean {
+        if (d == null) return false
+        return try {
+            val size = 64
+            val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bmp)
+            val layer = d.constantState?.newDrawable()?.mutate() ?: d
+            layer.setBounds(0, 0, size, size)
+            layer.level = 5000
+            layer.draw(canvas)
+            val px = IntArray(size * size)
+            bmp.getPixels(px, 0, size, 0, 0, size, size)
+            bmp.recycle()
+            px.any { (it ushr 24) > 8 }
+        } catch (e: Exception) {
+            true
+        }
     }
 
     private fun Drawable.toAlphaBitmap(size: Int): Bitmap {

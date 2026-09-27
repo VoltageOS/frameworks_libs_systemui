@@ -232,6 +232,21 @@ private constructor(base: AdaptiveIconDrawable, private val animationInfo: Clock
         private const val DEFAULT_HOUR_METADATA_KEY = "$LAUNCHER_PACKAGE.DEFAULT_HOUR"
         private const val DEFAULT_MINUTE_METADATA_KEY = "$LAUNCHER_PACKAGE.DEFAULT_MINUTE"
         private const val DEFAULT_SECOND_METADATA_KEY = "$LAUNCHER_PACKAGE.DEFAULT_SECOND"
+        private const val LEGACY_LAUNCHER_PACKAGE = "com.google.android.apps.nexuslauncher"
+        private const val LEGACY_ROUND_ICON_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.LEVEL_PER_TICK_ICON_ROUND"
+        private const val LEGACY_HOUR_INDEX_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.HOUR_LAYER_INDEX"
+        private const val LEGACY_MINUTE_INDEX_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.MINUTE_LAYER_INDEX"
+        private const val LEGACY_SECOND_INDEX_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.SECOND_LAYER_INDEX"
+        private const val LEGACY_DEFAULT_HOUR_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.DEFAULT_HOUR"
+        private const val LEGACY_DEFAULT_MINUTE_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.DEFAULT_MINUTE"
+        private const val LEGACY_DEFAULT_SECOND_METADATA_KEY =
+            "$LEGACY_LAUNCHER_PACKAGE.DEFAULT_SECOND"
 
         /* Number of levels to jump per second for the second hand */
         private const val LEVELS_PER_SECOND = 10
@@ -268,7 +283,13 @@ private constructor(base: AdaptiveIconDrawable, private val animationInfo: Clock
                     ?: return null
             val res = pm.getResourcesForApplication(appInfo)
             val metadata = appInfo.metaData ?: return null
-            val drawableId = metadata.getInt(ROUND_ICON_METADATA_KEY, 0)
+            fun metaInt(key: String, legacyKey: String, default: Int): Int {
+                val v = metadata.getInt(key, Int.MIN_VALUE)
+                if (v != Int.MIN_VALUE) return v
+                return metadata.getInt(legacyKey, default)
+            }
+            val drawableId =
+                metaInt(ROUND_ICON_METADATA_KEY, LEGACY_ROUND_ICON_METADATA_KEY, 0)
             val drawable =
                 res.getDrawableForDensity(drawableId, iconDpi)?.mutate() as? AdaptiveIconDrawable
                     ?: return null
@@ -276,18 +297,18 @@ private constructor(base: AdaptiveIconDrawable, private val animationInfo: Clock
             val foreground = drawable.foreground as? LayerDrawable ?: return null
             val layerCount = foreground.numberOfLayers
 
-            fun getLayerIndex(key: String) =
-                metadata.getInt(key, INVALID_VALUE).let {
+            fun getLayerIndex(key: String, legacyKey: String) =
+                metaInt(key, legacyKey, INVALID_VALUE).let {
                     if (it < 0 || it >= layerCount) INVALID_VALUE else it
                 }
             var animInfo =
                 ClockAnimationInfo(
-                    hourLayerIndex = getLayerIndex(HOUR_INDEX_METADATA_KEY),
-                    minuteLayerIndex = getLayerIndex(MINUTE_INDEX_METADATA_KEY),
-                    secondLayerIndex = getLayerIndex(SECOND_INDEX_METADATA_KEY),
-                    defaultHour = metadata.getInt(DEFAULT_HOUR_METADATA_KEY, 0),
-                    defaultMinute = metadata.getInt(DEFAULT_MINUTE_METADATA_KEY, 0),
-                    defaultSecond = metadata.getInt(DEFAULT_SECOND_METADATA_KEY, 0),
+                    hourLayerIndex = getLayerIndex(HOUR_INDEX_METADATA_KEY, LEGACY_HOUR_INDEX_METADATA_KEY),
+                    minuteLayerIndex = getLayerIndex(MINUTE_INDEX_METADATA_KEY, LEGACY_MINUTE_INDEX_METADATA_KEY),
+                    secondLayerIndex = getLayerIndex(SECOND_INDEX_METADATA_KEY, LEGACY_SECOND_INDEX_METADATA_KEY),
+                    defaultHour = metaInt(DEFAULT_HOUR_METADATA_KEY, LEGACY_DEFAULT_HOUR_METADATA_KEY, 0),
+                    defaultMinute = metaInt(DEFAULT_MINUTE_METADATA_KEY, LEGACY_DEFAULT_MINUTE_METADATA_KEY, 0),
+                    defaultSecond = metaInt(DEFAULT_SECOND_METADATA_KEY, LEGACY_DEFAULT_SECOND_METADATA_KEY, 0),
                     baseDrawableState = drawable.constantState!!,
                 )
 
